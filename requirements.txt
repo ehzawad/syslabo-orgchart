@@ -1,0 +1,18 @@
+# Runtime dependencies, pinned exactly — including the transitive ones, so an
+# install today and an install next year resolve to identical bytes.
+#
+#     python -m pip install -r requirements.txt
+#
+# pyproject.toml declares the same two direct dependencies; this file exists so
+# the whole resolved set is visible and reproducible without a resolver run.
+
+# Direct
+Django==6.0.7
+openpyxl==3.1.5
+
+# Pulled in by Django
+asgiref==3.12.1
+sqlparse==0.5.5
+
+# Pulled in by openpyxl
+et_xmlfile==2.0.0

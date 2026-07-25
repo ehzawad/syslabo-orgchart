@@ -1,0 +1,56 @@
+{% load static %}<!doctype html>
+{% comment %}
+The document language is English because the surrounding tool is English for the
+two or three people who maintain the data. Every Japanese value carries its own
+lang="ja", which is what makes a browser reach for a Japanese font and stop
+applying English hyphenation and line breaking to it.
+{% endcomment %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Organization Chart / 組織図{% endblock %}</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{% static 'orgchart/app.css' %}">
+  {% comment %}
+  The print rules are a separate sheet loaded with media="print", so nothing in
+  it can affect the screen and the whole print contract — A3 landscape, the
+  repeating header, what is hidden — reads as one file.
+  {% endcomment %}
+  <link rel="stylesheet" href="{% static 'orgchart/print.css' %}" media="print">
+  {% comment %}
+  One rule is repeated inline rather than left in that file. Refusing to print
+  an unverified sheet is a guarantee, and a guarantee must not depend on a
+  static file being served: with DEBUG off and no collectstatic run, the link
+  above 404s and every print rule with it. The disabled button only stops the
+  page's own control, not the browser's Ctrl+P, so this is what actually keeps
+  an unchecked chart off paper.
+  {% endcomment %}
+  <style>
+    @media print {
+      .sheet--unverified tbody { display: none !important; }
+      .sheet--unverified .sheet-stamp { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-bar no-print">
+    <a class="brand" href="{% url 'chart' %}">
+      <span class="brand-mark" aria-hidden="true">組</span>
+      <span>
+        <strong>Organization Chart</strong>
+        <small><span lang="ja">組織図</span> · master data on this machine</small>
+      </span>
+    </a>
+    <nav aria-label="Main">
+      <a href="{% url 'chart' %}">Chart</a>
+      <a href="{% url 'admin:index' %}">Maintenance</a>
+      {% if user.is_authenticated %}<span class="who">{{ user.get_username }}</span>{% endif %}
+    </nav>
+  </header>
+
+  <main class="{% block main_class %}app-main{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

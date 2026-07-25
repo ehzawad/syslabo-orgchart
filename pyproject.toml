@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools==83.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# The distribution is named for the customer and the task; the importable
+# package inside it stays `orgchart`, which is what Django's settings,
+# migrations and templates all refer to. Renaming that too would touch every
+# import for no gain.
+name = "syslabo-orgchart"
+version = "1.0.0"
+description = "Organization chart automatic-output application for the supplied Excel masters"
+readme = "README.md"
+# Every package version in this file is pinned exactly. This one is a bounded
+# band rather than a single value, and deliberately so: requires-python is a
+# compatibility declaration, not something that gets installed. Pinning it to
+# one patch release would make pip refuse the project on 3.12.11 or 3.14.7,
+# which is a different Python only in the sense that any bug-fix release is.
+# The band is closed at both ends, so it is not an open-ended range either.
+# Verified on 3.12.13 and 3.14.6.
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "Django==6.0.7",
+  "openpyxl==3.1.5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.1.1",
+  "pytest-django==4.11.1",
+  "ruff==0.16.0",
+]
+
+# This is a flat layout with two top-level packages, which setuptools refuses
+# to auto-discover, so discovery is pointed at them explicitly. It has to be a
+# find directive rather than a hand-written list of names, because a name in
+# such a list means that one directory's modules and nothing underneath it:
+# listing "orgchart" alone silently dropped orgchart.migrations and
+# orgchart.management from the wheel, so an installed copy could neither
+# migrate nor run import_excel. A trailing "*" takes the subpackages too, and
+# keeps taking them when a new one is added.
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["orgchart*", "config*"]
+# The test suite and the helper scripts are part of the repository but not part
+# of the shipped application. Neither carries an __init__.py today, so neither
+# is discovered anyway; naming them here means adding one later does not
+# quietly start publishing them.
+exclude = ["tests*", "scripts*", "docs*"]
+
+# Templates and static files are data rather than importable modules, so
+# package discovery never sees them and a wheel built without this renders no
+# page at all. Django resolves both by looking inside the installed app
+# package at run time, which is why they have to travel inside orgchart/
+# rather than as data files beside it.
+[tool.setuptools.package-data]
+orgchart = [
+  "templates/**/*.html",
+  "static/**/*.css",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ"]

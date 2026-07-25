@@ -1,0 +1,19 @@
+# Everything in requirements.txt plus the test and lint tooling, pinned exactly.
+#
+#     python -m pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# Direct
+pytest==9.1.1
+pytest-django==4.11.1
+ruff==0.16.0
+
+# Pulled in by pytest
+iniconfig==2.3.0
+packaging==26.2
+pluggy==1.6.0
+Pygments==2.20.0
+
+# Build backend, pinned to match pyproject.toml's [build-system]
+setuptools==83.0.0

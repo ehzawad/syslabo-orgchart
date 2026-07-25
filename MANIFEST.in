@@ -1,0 +1,27 @@
+# A wheel takes its data files from [tool.setuptools.package-data]; an sdist is
+# assembled from a file list of its own and would otherwise ship only the Python
+# modules. Naming the same directories again here means `pip install` from an
+# sdist cannot reintroduce the very gap the package-data entry closes.
+recursive-include orgchart/templates *.html
+recursive-include orgchart/static *.css
+
+# The long description names README.md, so an sdist that omits it cannot be
+# built back into a wheel. The requirements files are how the pinned
+# environment is reproduced, and they are referenced from the README.
+include README.md
+include requirements.txt
+include requirements-dev.txt
+
+# setuptools already sweeps tests/test_*.py into an sdist on its own, which
+# leaves conftest.py behind and ships a suite that cannot run. Take the whole
+# directory instead, so what arrives is either runnable or not there at all.
+# The wheel is unaffected; discovery excludes tests/ from the installed
+# package.
+recursive-include tests *.py
+
+# Compiled bytecode and the local SQLite file are build output. The database in
+# particular is regenerated from the masters and holds real personnel data, so
+# it must never be swept into a distribution.
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.sqlite3 *.sqlite3-shm *.sqlite3-wal

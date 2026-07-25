@@ -1,0 +1,96 @@
+{% extends "orgchart/base.html" %}
+{% block title %}{{ chart.fiscal_year }}年度組織図 / FY{{ chart.fiscal_year }} Organization Chart{% endblock %}
+{% block main_class %}chart-main{% endblock %}
+
+{% block content %}
+  {% comment %}
+  Everything above the sheet is screen furniture and carries .no-print: the
+  operator's controls are not part of the document being produced.
+  {% endcomment %}
+  <section class="controls no-print" aria-label="Chart controls">
+    <div class="controls-text">
+      <p class="eyebrow">Built from the imported master data</p>
+      <h1>FY{{ chart.fiscal_year }} Organization Chart <span lang="ja">組織図</span></h1>
+      <p class="meta">
+        As of {{ chart.as_of|date:"Y-m-d" }}
+        {# "units", not "departments": a derived grouping level is drawn as one. #}
+        · {{ chart.counts.departments }} units
+        · {{ chart.counts.appearances }} entries
+        · {{ chart.counts.concurrent }} concurrent (<span lang="ja">兼務</span>)
+        · {{ chart.counts.heads }} heads
+      </p>
+      <p class="note">
+        The sheet leads with the Japanese master values, as an internal
+        <span lang="ja">組織図</span> does. The English lines beneath them are a
+        reading aid and change no stored value.
+      </p>
+    </div>
+
+    <form method="get" class="controls-form">
+      <label for="as_of">As-of date</label>
+      <input type="date" id="as_of" name="as_of" value="{{ as_of|date:'Y-m-d' }}">
+      <div class="controls-buttons">
+        <button type="submit">Apply</button>
+        {% comment %}
+        The button is disabled rather than hidden so the reason for it stays on
+        screen; print.css blocks the sheet as well, because a disabled button
+        cannot stop the browser's own print command.
+        {% endcomment %}
+        <button type="button" class="secondary" onclick="window.print()"
+                {% if not gate.cleared %}disabled title="Verification failed, so this chart cannot be printed"{% endif %}>
+          Print / Save PDF
+        </button>
+      </div>
+      {% if date_error %}<p class="field-error" role="status">{{ date_error }}</p>{% endif %}
+    </form>
+  </section>
+
+  {% if not gate.cleared %}
+    <section class="gate no-print" role="alert">
+      <h2>Verification failed — this chart cannot be printed</h2>
+      <p>
+        The chart below was drawn from the records, then checked against them a
+        second time by an independent reader. The two disagree, so what is on
+        screen may not describe the organization. It is shown only so the data
+        can be corrected in
+        <a href="{% url 'admin:index' %}">Maintenance</a>; printing stays
+        disabled until the check passes.
+      </p>
+      {% for finding in gate.error_findings %}
+        <div class="gate-finding">
+          <strong>{% firstof finding.title finding.code %}</strong>
+          {% if finding.count %}<span class="pill">{{ finding.count }}</span>{% endif %}
+          <p>{{ finding.detail }}</p>
+        </div>
+      {% empty %}
+        {% comment %}
+        The verifier states its errors twice, as findings and as a flat list, so
+        the list is only worth printing when there were no findings to print —
+        for instance a report that failed without saying where.
+        {% endcomment %}
+        <ul class="gate-errors">
+          {% for message in gate.errors %}<li>{{ message }}</li>{% empty %}
+            <li>The verifier reported a failure without naming a cause.</li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if gate.warning_findings %}
+    {% with note_count=gate.warning_findings|length %}
+      <details class="notes no-print">
+        <summary>{{ note_count }} source-data note{{ note_count|pluralize }}</summary>
+        {% for finding in gate.warning_findings %}
+          <div class="note-item">
+            <strong>{% firstof finding.title finding.code %}</strong>
+            {% if finding.count %}<span class="pill">{{ finding.count }}</span>{% endif %}
+            <p>{{ finding.detail }}</p>
+          </div>
+        {% endfor %}
+      </details>
+    {% endwith %}
+  {% endif %}
+
+  {% include "orgchart/_chart_sheet.html" %}
+{% endblock %}

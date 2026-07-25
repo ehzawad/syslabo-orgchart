@@ -1,0 +1,79 @@
+/* What happens when the sheet reaches paper.
+ *
+ * This file is loaded with media="print", so every rule here is already inside
+ * the print context and nothing in it can disturb the screen. The sheet itself
+ * is styled once, in app.css, in millimetres and points; all this file does is
+ * fit that document to the page box and take the application away from around
+ * it. Screen and paper stay the same document, which is the only way a print
+ * preview can be trusted.
+ */
+
+/* A3 landscape is the customer's format: at ~20 departments and ~95 names,
+   anything smaller either drops to unreadable type or spills onto a second
+   sheet that has to be laid beside the first to be read. The 10mm margin sits
+   outside the unprintable border of an ordinary office printer. */
+@page {
+  size: A3 landscape;
+  margin: 10mm;
+}
+
+/* Navigation, controls and the verification panels are the operator's tools,
+   not part of the document. */
+.no-print { display: none !important; }
+
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: white;
+}
+
+.chart-main, .app-main { width: 100%; margin: 0; padding: 0; }
+
+.sheet {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  /* The top-level bands and the derived-level tint carry the hierarchy; without
+     this most browsers drop them and every row prints as plain white. */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* The repeating header. thead already defaults to table-header-group, but the
+   whole point of building the sheet as a table is this one line, so it is
+   stated rather than assumed: page two names itself, dates itself, and carries
+   the （兼） legend. */
+.sheet-table thead { display: table-header-group; }
+.sheet-table tbody { display: table-row-group; }
+/* The header costs its height on every page, so it is the first place to look
+   for room; the title stays the largest thing on the sheet regardless. */
+.sheet-head-cell { padding-bottom: 1.2mm; }
+.sheet-head { padding-bottom: 1.4mm; }
+.sheet-title h1 { font-size: 13.5pt; }
+
+/* A department must never be split across two sheets: half its people on one
+   page and half on the next reads as two different departments. */
+.sheet-row, .unit { break-inside: avoid; page-break-inside: avoid; }
+
+/* The rows give up the breathing room a screen can afford. Every one of these
+   is a minimum height or a padding, never a font size: the twenty-odd
+   departments and hundred-odd names have to fit on a single A3 sheet, and the
+   room for that comes out of the empty space in short rows rather than out of
+   the type, which has to stay readable on a wall at arm's length. */
+.unit { min-height: 6.8mm; }
+.unit--top { min-height: 8.4mm; }
+.unit-name { padding-top: .6mm; padding-bottom: .6mm; }
+.unit-people { gap: .3mm; padding-top: .5mm; padding-bottom: .5mm; }
+.person { line-height: 1.3; }
+
+/* An unverified chart is allowed on screen, where it is the thing being
+   corrected, but never onto paper: an unchecked sheet that looks exactly like a
+   checked one is the failure this whole verification step exists to prevent.
+   The body of the chart is dropped and the header prints alone, carrying the
+   reason. Blocking the button was not enough, because the browser's own print
+   command never touches it. */
+.sheet--unverified tbody { display: none; }
+.sheet--unverified .sheet-stamp { font-size: 12pt; padding: 3mm; }

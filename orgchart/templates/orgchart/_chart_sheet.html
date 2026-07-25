@@ -1,0 +1,114 @@
+{% comment %}
+The printed document itself, kept in its own file so that what reaches paper can
+be read end to end without the operator's controls in the way.
+
+chart["departments"] arrives pre-flattened and in print order, so this template
+makes no structural decision at all: it draws the rows it is given, indents each
+by its own depth, and never re-sorts or re-groups anything the chart module and
+the verifier have already agreed on.
+{% endcomment %}
+{% if not chart.departments %}
+  <section class="empty-state no-print">
+    <p class="eyebrow">Nothing to draw</p>
+    <h2>No active departments on {{ chart.as_of|date:"Y-m-d" }}</h2>
+    <p>Import <code>cmn_department.xlsx</code> and <code>sys_user.xlsx</code>, or pick a date on which the organization existed.</p>
+  </section>
+{% else %}
+  <section class="sheet{% if not gate.cleared %} sheet--unverified{% endif %}" aria-label="Organization chart">
+    {% comment %}
+    A real table with a real thead is the one construction print engines repeat
+    at the top of every page, so a chart that runs onto a second A3 sheet still
+    names itself, its as-of date, and its （兼） legend. Each department keeps its
+    own markup inside a single body cell.
+    {% endcomment %}
+    <table class="sheet-table">
+      <thead>
+        <tr>
+          <td class="sheet-head-cell">
+            <div class="sheet-head">
+              <div class="sheet-title">
+                <h1 lang="ja">{{ chart.fiscal_year }}年度組織図</h1>
+                <small>FY{{ chart.fiscal_year }} Organization Chart</small>
+              </div>
+              <div class="sheet-meta">
+                <p lang="ja">{{ chart.as_of|date:"Y年n月j日" }}現在</p>
+                <small>As of {{ chart.as_of|date:"Y-m-d" }}</small>
+                {% if chart.counts.concurrent or chart.counts.heads %}
+                  <p class="sheet-legend" lang="ja">
+                    {% if chart.counts.concurrent %}（兼）＝兼務{% endif %}
+                    {% if chart.counts.concurrent and chart.counts.heads %}　{% endif %}
+                    {% if chart.counts.heads %}<b>太字</b>＝部門長{% endif %}
+                  </p>
+                  <small>
+                    {% if chart.counts.concurrent %}Concurrent assignment{% endif %}
+                    {% if chart.counts.concurrent and chart.counts.heads %} · {% endif %}
+                    {% if chart.counts.heads %}Head of unit{% endif %}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+            {% if not gate.cleared %}
+              {% comment %}
+              Sitting in the header, this repeats on every page: if the sheet is
+              photographed or exported some other way, the warning travels with
+              it rather than staying behind on the control panel.
+              {% endcomment %}
+              <p class="sheet-stamp" lang="ja">未検証 — 印刷不可 / NOT VERIFIED — printing is disabled</p>
+            {% endif %}
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for unit in chart.departments %}
+          <tr class="sheet-row">
+            <td>
+              <article class="unit{% if unit.depth == 0 %} unit--top{% endif %}{% if unit.derived %} unit--derived{% endif %}"
+                       style="--depth: {{ unit.depth }}">
+                <div class="unit-name">
+                  {% comment %}
+                  A row under a derived level prints only its own tail, the way
+                  the hand-drawn chart does; the level above carries the text
+                  that was stripped, and the full master name stays available on
+                  hover for anyone checking the sheet against the file.
+                  {% endcomment %}
+                  <strong lang="ja"{% if unit.display_name != unit.name %} title="{{ unit.name }}"{% endif %}>{{ unit.display_name }}</strong>
+                  {% if unit.name_en %}<small>{{ unit.name_en }}</small>{% endif %}
+                </div>
+                <div class="unit-people">
+                  {% if unit.derived %}
+                    {% comment %}
+                    A derived level is drawn, not recorded. The master has no row
+                    for it, so it can hold neither members nor a head.
+                    {% endcomment %}
+                  {% elif unit.people %}
+                    {% comment %}
+                    People arrive sorted heads first and then by title rank, so a
+                    consecutive run of one title is exactly one printed title
+                    block: regroup labels those runs without reordering anything.
+                    {% endcomment %}
+                    {% regroup unit.people by title as title_runs %}
+                    {% for run in title_runs %}
+                      <div class="role{% if not run.grouper %} role--untitled{% endif %}">
+                        {% if run.grouper %}
+                          <span class="role-title">
+                            <strong lang="ja">{{ run.grouper }}</strong>
+                            {% if run.list.0.title_en %}<small>{{ run.list.0.title_en }}</small>{% endif %}
+                          </span>
+                        {% endif %}
+                        <span class="role-people">
+                          {% for person in run.list %}<span lang="ja" class="person{% if person.is_head %} person--head{% endif %}"{% if person.is_head %} title="部門長 / head of unit"{% endif %}>{% if person.concurrent %}（兼）{% endif %}{{ person.label }}</span>{% endfor %}
+                        </span>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <span class="unit-empty" lang="ja">所属者なし<small>No members</small></span>
+                  {% endif %}
+                </div>
+              </article>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endif %}

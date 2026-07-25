@@ -1,0 +1,298 @@
+/* Screen styles for the chart application.
+ *
+ * Two ideas run through this file. The chrome — header, controls, verification
+ * panels — is ordinary English admin furniture and stays out of the way. The
+ * sheet is a document: it is sized in millimetres and set in points, because it
+ * is designed for A3 paper first and merely previewed on a screen, and what is
+ * on screen has to be what comes out of the printer. print.css only adjusts
+ * that document for the page box; it does not restyle it.
+ */
+
+:root {
+  color-scheme: light;
+  --ink: #18212a;
+  --muted: #61707d;
+  --line: #dbe3e7;
+  --paper: #ffffff;
+  --canvas: #f2f5f6;
+  --accent: #0d6b62;
+  --accent-dark: #094f49;
+  --accent-soft: #e0f0ec;
+  --danger: #a3352f;
+  --danger-soft: #fdf0ee;
+  /* A Japanese face has to be reachable for the sheet, and a Latin face has to
+     come first so English glosses are not set in a Japanese font's proportional
+     Latin. The lang attributes in the markup do the rest. */
+  font-family: Inter, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--canvas);
+  line-height: 1.45;
+}
+
+h1, h2, p { margin-top: 0; }
+a { color: var(--accent-dark); text-underline-offset: 3px; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
+
+/* --------------------------------------------------------------- chrome */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(8px);
+}
+.brand { display: flex; align-items: center; gap: .7rem; color: var(--ink); text-decoration: none; }
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: white;
+  background: var(--accent);
+  font-weight: 900;
+}
+.brand small { display: block; color: var(--muted); font-size: .72rem; }
+nav { display: flex; align-items: center; gap: 1.1rem; }
+nav a { color: var(--muted); font-weight: 700; text-decoration: none; }
+nav a:hover { color: var(--accent); }
+.who { color: var(--muted); font-size: .78rem; }
+
+.chart-main { width: 100%; margin: 0; }
+.app-main { width: min(1180px, calc(100% - 2rem)); margin: 2rem auto 3rem; }
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.controls h1 { margin-bottom: .15rem; font-size: 1.4rem; letter-spacing: -.02em; }
+.controls-text { max-width: 68ch; }
+.eyebrow {
+  margin-bottom: .2rem;
+  color: var(--accent);
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.meta { margin-bottom: .35rem; color: #40515d; font-size: .85rem; font-weight: 600; }
+.note { margin-bottom: 0; color: var(--muted); font-size: .8rem; }
+
+.controls-form { display: grid; gap: .4rem; justify-items: start; }
+label { color: #3a4b58; font-size: .78rem; font-weight: 700; }
+input[type="date"] {
+  min-height: 2.4rem;
+  width: 11rem;
+  border: 1px solid #b9c6ce;
+  border-radius: 7px;
+  padding: .4rem .6rem;
+  color: var(--ink);
+  background: white;
+  font: inherit;
+}
+input:focus { outline: 3px solid rgba(13, 107, 98, .18); border-color: var(--accent); }
+.controls-buttons { display: flex; gap: .6rem; }
+button {
+  min-height: 2.4rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: .45rem .9rem;
+  color: white;
+  background: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover { background: var(--accent-dark); }
+button.secondary { color: var(--accent-dark); background: white; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+button:disabled:hover { background: white; }
+.field-error { margin: 0; color: var(--danger); font-size: .78rem; font-weight: 700; }
+
+/* ------------------------------------------------- verification panels */
+
+/* The blocked state is loud on purpose. It is the one condition under which
+   the thing on screen must not be treated as the organization chart. */
+.gate {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 1.25rem auto 0;
+  border: 1px solid #e6b7b2;
+  border-left: 6px solid var(--danger);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: var(--danger-soft);
+}
+.gate h2 { margin-bottom: .4rem; color: var(--danger); font-size: 1.05rem; }
+.gate p { margin-bottom: 0; font-size: .88rem; }
+.gate-errors { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .85rem; }
+.gate-finding { margin-top: .75rem; font-size: .88rem; }
+.gate-finding p { margin: .15rem 0 0; color: #4a3b39; word-break: break-word; }
+.pill {
+  display: inline-block;
+  margin-left: .35rem;
+  border-radius: 999px;
+  padding: .05rem .45rem;
+  background: rgba(163, 53, 47, .12);
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.notes {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 1rem auto 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  background: var(--paper);
+}
+.notes summary { color: var(--accent-dark); cursor: pointer; font-weight: 700; }
+.note-item { margin-top: .7rem; font-size: .85rem; }
+.note-item p { margin: .15rem 0 0; color: var(--muted); word-break: break-word; }
+
+.empty-state {
+  width: min(760px, calc(100% - 2rem));
+  margin: 2.5rem auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2.5rem;
+  background: var(--paper);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------- the sheet */
+
+.sheet {
+  width: min(420mm, calc(100vw - 2rem));   /* the width of A3 landscape */
+  min-height: 297mm;
+  margin: 1.25rem auto 2rem;
+  padding: 7mm 8mm 6mm;
+  color: #111;
+  background: white;
+  box-shadow: 0 12px 34px rgba(16, 35, 48, .13);
+}
+
+/* The sheet is a table for exactly one reason: a thead is what a print engine
+   repeats at the top of every page. It must not inherit any admin table look. */
+.sheet-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.sheet-table td { padding: 0; border: 0; vertical-align: top; }
+.sheet-head-cell { padding-bottom: 2mm; }
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 6mm;
+  border-bottom: 1.4px solid #16242a;
+  padding-bottom: 2mm;
+}
+.sheet-title h1 { margin: 0; font-size: 16pt; letter-spacing: .06em; line-height: 1.15; }
+.sheet-title small { display: block; margin-top: .6mm; color: #4a585e; font-size: 7pt; letter-spacing: .04em; }
+.sheet-meta { text-align: right; }
+.sheet-meta p { margin: 0; font-size: 8.5pt; }
+.sheet-meta small { display: block; color: #4a585e; font-size: 6.5pt; }
+/* Written against .sheet-meta so it outranks the margin reset above it rather
+   than needing !important. */
+.sheet-meta .sheet-legend { margin-top: 1mm; letter-spacing: .03em; }
+.sheet-stamp {
+  margin: 1.5mm 0 0;
+  border: 1.2px solid var(--danger);
+  border-radius: 2px;
+  padding: 1mm 2mm;
+  color: var(--danger);
+  background: #fdeeec;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+/* One department is one row: its name on the left, its people on the right.
+   --depth comes from the pre-flattened chart row and is the only thing that
+   expresses hierarchy here, which is why this template never walks a tree. */
+.unit {
+  display: grid;
+  grid-template-columns: 78mm 1fr;
+  min-height: 8.4mm;
+  border-bottom: .3mm solid #b3bdc2;
+  break-inside: avoid;
+}
+.unit--top { min-height: 10mm; border-top: .7mm solid #16242a; background: #eef5f3; }
+.unit-name {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .3mm;
+  border-right: .3mm solid #8f9b9f;
+  padding: 1.2mm 2mm 1.2mm calc(2mm + var(--depth) * 7mm);
+  /* 8pt of Japanese on A3 is about 2.8mm of character height, which is what the
+     hand-made chart this replaces used and what keeps the whole organization on
+     one sheet. Every millimetre spent here costs a row somewhere else. */
+  font-size: 8pt;
+}
+/* The Japanese master name leads; the English gloss is the quieter second line,
+   so the two never compete for the same reading weight. */
+.unit-name strong { font-weight: 700; letter-spacing: .02em; line-height: 1.2; }
+.unit-name small { color: #66747a; font-size: 5.8pt; font-weight: 500; line-height: 1.15; }
+.unit--top .unit-name { color: white; background: #14574f; font-size: 9.5pt; }
+.unit--top .unit-name small { color: #d8eae6; }
+/* The short rule before a nested name is the only tree drawing on the sheet;
+   at depth 0 there is no parent to point back to. */
+.unit-name::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(2.6mm + (var(--depth) - 1) * 7mm);
+  width: 4mm;
+  border-top: .35mm solid #6d7b80;
+}
+.unit--top .unit-name::before { display: none; }
+
+/* A derived level has no row in the master: it is the shared component of its
+   children's names, drawn so the sheet reads the way the business speaks. It is
+   therefore a quiet band, never a department box — no code, no people, no head. */
+.unit--derived { background: #f3f8f6; }
+.unit--derived .unit-name { border-right-color: #b9c3c7; font-weight: 600; }
+
+.unit-people { display: grid; align-content: center; gap: .6mm; padding: 1mm 1.5mm; }
+.role { display: grid; grid-template-columns: 30mm 1fr; align-items: baseline; gap: 2mm; }
+.role--untitled { grid-template-columns: 1fr; }
+.role-title { color: #3f4f57; text-align: right; }
+.role-title strong { display: block; font-size: 6.8pt; font-weight: 700; line-height: 1.15; }
+.role-title small { display: block; color: #74818a; font-size: 5.2pt; line-height: 1.1; }
+.role-people { display: flex; flex-wrap: wrap; gap: .8mm 3.5mm; }
+.person { white-space: nowrap; font-size: 8pt; line-height: 1.35; }
+/* Bold is the whole marking for a head: an extra badge on 20 rows would fight
+   the names for attention, and the legend in the sheet header explains it. */
+.person--head { font-weight: 900; }
+.unit-empty { align-self: center; color: #8b959a; font-size: 6.5pt; font-style: italic; }
+.unit-empty small { margin-left: 1.5mm; font-size: 5.4pt; }
+
+@media screen and (max-width: 1000px) {
+  .app-bar { flex-direction: column; align-items: flex-start; padding: .9rem 1rem; }
+  .controls { flex-direction: column; align-items: stretch; }
+  .sheet { padding: 5mm; }
+  /* Below A3 the two-column row would crush the names before the people, so the
+     department column gives up its fixed millimetres rather than the sheet. */
+  .unit { grid-template-columns: 42% 58%; }
+  .role { grid-template-columns: 22mm 1fr; }
+}
