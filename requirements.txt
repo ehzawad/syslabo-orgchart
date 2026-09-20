@@ -12,7 +12,7 @@ openpyxl==3.1.5
 
 # Pulled in by Django
 asgiref==3.12.1
-sqlparse==0.5.5
+sqlparse==0.6.0
 
 # Pulled in by openpyxl
 et_xmlfile==2.0.0
